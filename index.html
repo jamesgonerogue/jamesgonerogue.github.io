@@ -1,7 +1,7 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 
-<head><script src="./u8h-patch.js?v=44"></script>
+<head><script id="u8h-disable-sw">if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(r){r.forEach(function(x){x.unregister();});});}if(window.caches){caches.keys().then(function(k){k.forEach(function(x){caches.delete(x);});});}</script><script src="./u8h-patch.js?v=44"></script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1920, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="theme-color" content="#000000" />
@@ -131,7 +131,7 @@
 <script>
     window.__BUILD_COMMIT__ = 'b5e0f7d';
     // Register service worker with auto-update
-    if ('serviceWorker' in navigator) {
+    if (false && 'serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(function(reg) {
             reg.addEventListener('updatefound', function() {
                 var newWorker = reg.installing;
