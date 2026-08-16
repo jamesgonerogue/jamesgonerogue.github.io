@@ -2,7 +2,7 @@
 (function () {
   'use strict';
 
-  var PATCH_VERSION = 'U8H-SEARCH-v4.4';
+  var PATCH_VERSION = 'U8H-SEARCH-v4.6';
   window.__U8H_SEARCH_PATCH__ = PATCH_VERSION;
 
   var synthetic = false;
@@ -83,8 +83,16 @@
       el.setAttribute('autocorrect', 'off');
       el.setAttribute('autocapitalize', 'none');
       el.setAttribute('spellcheck', 'false');
-      el.setAttribute('data-u8h-search-patched', '4.4');
+      el.setAttribute('data-u8h-search-patched', '4.6');
       lastSearchInput = el;
+
+      // Stremio may recreate the search input after the query changes.
+      // Reapply the keyboard lock to the replacement input.
+      var releasedQuery = getRouteQuery();
+      if (releasedQuery && lastReleasedQuery &&
+          releasedQuery.toLowerCase() === lastReleasedQuery.toLowerCase()) {
+        try { el.setAttribute('readonly', 'readonly'); } catch (e) {}
+      }
     } catch (e) {}
   }
 
@@ -98,9 +106,8 @@
     if (!el || !isTextInput(el)) return;
     try { el.blur(); } catch (e) {}
     try { el.setAttribute('readonly', 'readonly'); } catch (e) {}
-    setTimeout(function () {
-      try { el.removeAttribute('readonly'); } catch (e) {}
-    }, 180);
+    // v4.6: Keep the completed-search input readonly while we remain
+    // on this result session. VIDAA otherwise reattaches its native IME.
     try {
       if (document.activeElement === el) document.activeElement.blur();
     } catch (e) {}
@@ -137,7 +144,7 @@
     fire(el, 'change');
     synthetic = false;
 
-    forceRoute(value);
+    // v4.6: Stremio's own search controller updates the query state.
     lastValue = value;
     lastSubmit = (origin || 'manual') + ': ' + value;
 
@@ -183,7 +190,12 @@
 
   window.addEventListener('hashchange', function () {
     if (!isSearchRoute()) {
-      releaseKeyboard('left search route');
+      try {
+        if (lastSearchInput) {
+          lastSearchInput.blur();
+          lastSearchInput.removeAttribute('readonly');
+        }
+      } catch (e) {}
       lastReleasedQuery = '';
     } else {
       maybeReleaseAfterNativeSubmit();
